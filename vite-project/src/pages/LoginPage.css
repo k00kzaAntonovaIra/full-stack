@@ -1,0 +1,207 @@
+/* Общие стили страницы */
+.login-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  isolation: isolate;
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+/* Каркас формы */
+.login-frame {
+  width: 90%;
+  max-width: 654px;
+  margin: 58.5px auto;
+  background: rgba(198, 240, 164, 0.8);
+  border: 1px solid #5f725a;
+  border-radius: 20px;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  height: auto; /* Автоматическая высота */
+}
+
+/* Каркас для регистрации */
+.login-frame.register-mode {
+  /* расширяется по содержимому */
+  padding-bottom: 40px;
+}
+
+/* Заголовки */
+.welcome {
+  width: 90%;
+  max-width: 453px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 120%;
+  text-align: center;
+  color: #053b11;
+  margin: 30px auto 20px auto;
+}
+
+.register-title {
+  max-width: 374px;
+  margin: 32px auto 20px auto;
+}
+
+/* Контейнеры для полей (email, password и т.п.) */
+.email-container,
+.password-container,
+.register-field {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto 20px auto;
+}
+
+/* Лейблы */
+.label-email,
+.label-password,
+.register-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #000;
+  margin-bottom: 5px;
+  display: block;
+  text-align: left;
+}
+
+/* Все input - единый стиль */
+.input-email,
+.input-password,
+.register-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 32px;
+  padding: 0 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #000;
+  outline: none;
+  display: block;
+}
+
+.input-email::placeholder,
+.input-password::placeholder,
+.register-input::placeholder {
+  color: #a0aec0;
+}
+
+.input-email:focus,
+.input-password:focus,
+.register-input:focus {
+  border-color: #053b11;
+}
+
+.register-input:disabled,
+.input-email:disabled,
+.input-password:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Кнопки базовые */
+.button-base {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 380px;
+  height: 32px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin: 20px auto;
+  border: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button-base:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Кнопка входа */
+.login-btn {
+  background: #053b11;
+  color: #fff;
+}
+
+/* Кнопка переключения на регистрацию */
+.register-btn {
+  background: #edf2f7;
+  color: #053b11;
+  margin: 0 auto 30px auto;
+}
+
+/* Кнопка регистрации */
+.register-submit-button {
+  background: #053b11;
+  border: 1px solid #e2e8f0;
+  color: #fff;
+  margin-top: 20px;
+}
+
+/* Сообщение об ошибке */
+.error-message {
+  width: 90%;
+  max-width: 380px;
+  margin: 0 auto 20px auto;
+  padding: 10px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  color: #c33;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  z-index: 10;
+}
+
+/* Формы */
+form {
+  width: 100%;
+  position: relative;
+}
+
+/* Медиа запросы для адаптивности */
+@media (max-width: 1440px) {
+  .login-frame {
+    width: 90%;
+    max-width: 654px;
+    margin: 50px auto;
+  }
+
+  .welcome,
+  .register-title {
+    width: 90%;
+    max-width: 374px;
+    margin: 32px auto 20px auto;
+  }
+
+  .email-container,
+  .password-container,
+  .register-field,
+  .login-btn,
+  .register-btn,
+  .register-submit-button {
+    width: 100%;
+    max-width: 380px;
+    margin: 10px auto;
+  }
+}

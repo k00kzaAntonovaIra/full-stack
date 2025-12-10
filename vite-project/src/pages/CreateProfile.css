@@ -1,0 +1,326 @@
+/* Создание профиля - Основной контейнер */
+.create-profile-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0px;
+  isolation: isolate;
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  height: 1024px;
+  overflow-y: scroll;
+  background: url('/fon1.jpg'), #FFFFFF;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Frame 1 - Карточка формы */
+.create-profile-frame {
+  box-sizing: border-box;
+  position: absolute;
+  width: 512px;
+  height: auto;
+  min-height: 830px;
+  left: calc(50% - 512px / 2);
+  top: calc(50% - 830px / 2 + 17px);
+  background: rgba(198, 240, 164, 0.8);
+  border: 1px solid #5F725A;
+  border-radius: 20px;
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+  z-index: 0;
+  padding: 0;
+  padding-bottom: 100px;
+  overflow-y: auto;
+}
+
+/* Заголовок */
+.create-profile-title {
+  position: absolute;
+  width: 374px;
+  height: 49px;
+  left: 69px;
+  top: 32px;
+  font-family: 'Inder', 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 120%;
+  display: flex;
+  align-items: center;
+  letter-spacing: -0.02em;
+  color: #053B11;
+  margin: 0;
+}
+
+/* Контейнер для фото профиля */
+.profile-image-container {
+  position: absolute;
+  width: 255px;
+  height: 255px;
+  left: calc(50% - 255px / 2 - 0.5px);
+  top: 111px;
+}
+
+/* Круг для фото профиля */
+.profile-image-circle {
+  position: absolute;
+  width: 255px;
+  height: 255px;
+  left: 0;
+  top: 0;
+  background: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-image-placeholder {
+  position: absolute;
+  width: 169px;
+  height: 20px;
+  left: calc(50% - 169px / 2);
+  top: calc(50% - 10px);
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  color: #A0AEC0;
+  text-align: center;
+}
+
+/* Форма */
+.create-profile-form {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  margin-top: 400px;
+  padding-bottom: 100px;
+}
+
+/* Поля формы */
+.form-field {
+  position: relative;
+  width: 380px;
+  margin: 0 auto 24px auto;
+  height: auto;
+}
+
+/* Метки полей */
+.form-label {
+  display: block;
+  width: 100%;
+  height: 17px;
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  color: #000000;
+  margin: 0 0 8px 0;
+}
+
+/* Input поля */
+.form-input {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0px 12px;
+  gap: 10px;
+  width: 100%;
+  height: 32px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  color: #000000;
+  outline: none;
+}
+
+.form-input::placeholder {
+  color: #A0AEC0;
+}
+
+.form-input:focus {
+  border-color: #053B11;
+}
+
+/* Textarea */
+.form-textarea {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 10px;
+  width: 100%;
+  height: 63px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  color: #000000;
+  resize: none;
+  outline: none;
+}
+
+.form-textarea::placeholder {
+  color: #A0AEC0;
+}
+
+.form-textarea:focus {
+  border-color: #053B11;
+}
+
+/* Кнопка отправки */
+.create-profile-submit-button {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0px 12px;
+  gap: 8px;
+  position: absolute;
+  height: 32px;
+  width: calc(100% - 106px);
+  left: 53px;
+  right: 53px;
+  bottom: 33px;
+  background: #053B11;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.create-profile-submit-button:hover {
+  opacity: 0.9;
+}
+
+.create-profile-submit-button:active {
+  opacity: 0.8;
+}
+
+.create-profile-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Кнопка отмены */
+.create-profile-cancel-button {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0px 12px;
+  gap: 8px;
+  position: absolute;
+  height: 32px;
+  width: calc(100% - 106px);
+  left: 53px;
+  right: 53px;
+  bottom: -50px;
+  background: transparent;
+  border: 1px solid #5F725A;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: #053B11;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 10px;
+}
+
+.create-profile-cancel-button:hover {
+  opacity: 0.8;
+  background: rgba(198, 240, 164, 0.5);
+}
+
+.create-profile-cancel-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Сообщение об ошибке */
+.create-profile-error {
+  position: absolute;
+  width: calc(100% - 106px);
+  left: 53px;
+  right: 53px;
+  top: 90px;
+  padding: 10px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  color: #c33;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  z-index: 10;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .create-profile-frame {
+    width: 90%;
+    max-width: 512px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: auto;
+    min-height: 830px;
+    padding-bottom: 100px;
+  }
+
+  .create-profile-title {
+    width: 90%;
+    max-width: 374px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .profile-image-container {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .form-field {
+    width: calc(100% - 106px);
+    left: 53px;
+  }
+}
