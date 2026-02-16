@@ -1,49 +1,42 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..core.db import get_db
-from ..schemas.users import UserCreate, UserRead, UserUpdate
+from ..core.security import get_current_user
+from ..schemas.users import UserRead, UserUpdate
 from ..service import users as user_service
+from ..models.users import User
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    """👤 Регистрация пользователя"""
-    try:
-        user = user_service.create_user(db, user_data)
-        return user
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/{user_id}", response_model=UserRead)
-async def get_user_profile(user_id: int, db: Session = Depends(get_db)):
-    """🔍 Получить профиль"""
-    try:
-        user = user_service.get_user_profile(db, user_id)
-        return user
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
-@router.put("/{user_id}", response_model=UserRead)
-async def update_user_profile(
-    user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)
+@router.get("/me", response_model=UserRead)
+async def get_my_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    """✏️ Обновить профиль"""
+    """🔍 Получить свой профиль"""
+    return user_service.get_user_profile(db, current_user.id)
+
+
+@router.put("/me", response_model=UserRead)
+async def update_my_profile(
+    user_data: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """✏️ Обновить свой профиль"""
     try:
-        user = user_service.update_user_profile(db, user_id, user_data)
+        user = user_service.update_user_profile(db, current_user.id, user_data)
         return user
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user_account(user_id: int, db: Session = Depends(get_db)):
-    """❌ Удалить аккаунт"""
-    try:
-        user_service.delete_user(db, user_id)
-        return None
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_my_account(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """❌ Удалить свой аккаунт"""
+    user_service.delete_user(db, current_user.id)
+    return None

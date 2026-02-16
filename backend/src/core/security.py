@@ -8,7 +8,6 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from .settings import settings
 from .db import get_db
-from ..crud import users as crud_users
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -96,6 +95,7 @@ def get_current_user(
         raise credentials_exception
 
     user_id: str = payload.get("sub")
+    from ..crud import users as crud_users  # Local import to avoid circular dependency
     user = crud_users.get_user(db, user_id=int(user_id))
     if user is None:
         raise credentials_exception
