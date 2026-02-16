@@ -1,28 +1,33 @@
 import { useState } from 'react';
 import { authAPI, tokenManager } from '../utils/api';
+import type { User } from '../utils/api';
 import './LoginPage.css';
 
-export default function LoginPage({ onSwitchToRegister, onLoginSuccess }) {
+interface Props {
+  onSwitchToRegister: () => void;
+  onLoginSuccess?: (user: User) => void;
+}
+
+export default function LoginPage({ onSwitchToRegister, onLoginSuccess }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
       const response = await authAPI.login(email, password);
-      
+
       tokenManager.setTokens(response.access_token, response.refresh_token);
-      
-      if (onLoginSuccess) {
-        onLoginSuccess(response.user);
-      }
+
+      onLoginSuccess?.(response.user);
     } catch (err) {
-      setError(err.message || 'Ошибка входа. Проверьте email и пароль.');
+      const message = err instanceof Error ? err.message : 'Ошибка входа. Проверьте email и пароль.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -58,27 +63,21 @@ export default function LoginPage({ onSwitchToRegister, onLoginSuccess }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+            maxLength={72}
               disabled={loading}
             />
           </div>
 
-          <button 
-            type="submit" 
-            className="login-btn button-base"
-            disabled={loading}
-          >
+          <button type="submit" className="login-btn button-base" disabled={loading}>
             {loading ? 'Вход...' : 'Войти'}
           </button>
         </form>
 
-        <button 
-          className="register-btn button-base"
-          onClick={onSwitchToRegister}
-          disabled={loading}
-        >
+        <button className="register-btn button-base" onClick={onSwitchToRegister} disabled={loading}>
           Создать аккаунт
         </button>
       </div>
     </div>
   );
 }
+

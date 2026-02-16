@@ -8,9 +8,9 @@ class Settings:
     
     # JWT
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+    REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
     
     # CORS
     _CORS_ORIGINS_ENV: Optional[str] = os.getenv("CORS_ORIGINS")
@@ -23,6 +23,7 @@ class Settings:
         else [
             "http://localhost:3000",
             "http://localhost:5173",
+            "http://localhost:5174",
             "http://localhost:8080",
             "http://127.0.0.1:3000",
             "http://127.0.0.1:5173",
@@ -30,8 +31,8 @@ class Settings:
         ]
     )
     CORS_CREDENTIALS: bool = True
-    CORS_METHODS: List[str] = ["*"]
-    CORS_HEADERS: List[str] = ["*"]
+    CORS_METHODS: List[str] = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    CORS_HEADERS: List[str] = ["Authorization", "Content-Type", "Accept", "Origin"]
     
     # Application
     DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"

@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..core.db import get_db
-from ..core.security import get_current_user
 from ..schemas.users import UserLogin, UserCreate
 from ..schemas.auth import Token, LoginResponse, RefreshTokenRequest
 from ..service import auth as auth_service
-from ..models.users import User
+from ..core.security import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -56,22 +55,9 @@ async def logout(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/revoke-all", status_code=status.HTTP_200_OK)
-async def revoke_all_tokens(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """🔒 Отозвать все refresh токены текущего пользователя"""
-    try:
-        result = auth_service.revoke_all_user_tokens(db, current_user.id)
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
 @router.get("/me")
 async def get_current_user_info(
-    current_user: User = Depends(get_current_user)
+    current_user = Depends(get_current_user)
 ):
     """👤 Получить информацию о текущем пользователе"""
     from ..schemas.users import UserRead
