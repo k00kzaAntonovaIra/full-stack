@@ -49,24 +49,31 @@ def register_user(db: Session, user_data: UserCreate) -> LoginResponse:
 
 
 def authenticate_user(db: Session, login_data: UserLogin) -> LoginResponse:
-    """Authenticate user and return tokens"""
+    """Authenticate user and return tokens using argon2 (no 72-byte limit)"""
+    from ..crud import users as crud_users
+    from ..crud import refresh_tokens as crud_refresh_tokens
+    from ..schemas.users import UserRead
+    from ..core.security import verify_password, create_access_token, create_refresh_token as generate_refresh_token
+    from ..core.settings import settings
+    from datetime import timedelta
+
+    # Получаем пользователя по email
     user = crud_users.get_user_by_email(db, login_data.email)
     if not user:
         raise ValueError("Invalid email or password")
 
+    # Проверяем пароль через argon2
     if not verify_password(login_data.password, user.password_hash):
         raise ValueError("Invalid email or password")
 
-    # Generate tokens
+    # Генерация access токена
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        user.id, 
-        expires_delta=access_token_expires
-    )
+    access_token = create_access_token(user.id, expires_delta=access_token_expires)
 
+    # Генерация refresh токена
     refresh_token_str, refresh_token_expires = generate_refresh_token(user.id)
-    
-    # Save refresh token to database
+
+    # Сохраняем refresh токен в базе
     crud_refresh_tokens.create_refresh_token(
         db=db,
         token=refresh_token_str,
@@ -74,12 +81,15 @@ def authenticate_user(db: Session, login_data: UserLogin) -> LoginResponse:
         expires_at=refresh_token_expires
     )
 
+    # Возвращаем структуру с токенами и данными пользователя
     return LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token_str,
         token_type="bearer",
         user=UserRead.model_validate(user)
     )
+
+
 
 
 def refresh_access_token(db: Session, refresh_token: str) -> Token:

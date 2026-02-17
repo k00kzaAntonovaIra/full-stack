@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { authAPI, tokenManager } from '../utils/api';
+import type { User } from '../utils/api';
 import './LoginPage.css';
 
-export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }) {
+interface Props {
+  onSwitchToLogin: () => void;
+  onRegisterSuccess?: (user: User) => void;
+}
+
+export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Props) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -10,7 +16,7 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async (e) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
@@ -24,6 +30,11 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }) {
       return;
     }
 
+    if (password.length > 72) {
+      setError('Пароль не должен быть длиннее 72 символов');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -32,14 +43,13 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }) {
         email,
         password,
       });
-      
+
       tokenManager.setTokens(response.access_token, response.refresh_token);
-      
-      if (onRegisterSuccess) {
-        onRegisterSuccess(response.user);
-      }
+
+      onRegisterSuccess?.(response.user);
     } catch (err) {
-      setError(err.message || 'Ошибка регистрации. Попробуйте еще раз.');
+      const message = err instanceof Error ? err.message : 'Ошибка регистрации. Попробуйте еще раз.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -53,18 +63,6 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }) {
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleRegister} className="register-form">
-          <div className="register-field register-name-field">
-            <label className="register-label">Имя</label>
-            <input
-              type="text"
-              className="register-input"
-              placeholder="Введите имя"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
 
           <div className="register-field register-email-field">
             <label className="register-label">Электронная почта</label>
@@ -88,6 +86,7 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              maxLength={72}
               disabled={loading}
             />
           </div>
@@ -100,19 +99,21 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              maxLength={72}
               disabled={loading}
             />
           </div>
 
-          <button 
-            type="submit" 
-            className="register-submit-button button-base"
-            disabled={loading}
-          >
+          <button type="submit" className="register-submit-button button-base" disabled={loading}>
             {loading ? 'Регистрация...' : 'Продолжить'}
           </button>
         </form>
+
+        <button className="register-btn button-base" onClick={onSwitchToLogin} disabled={loading}>
+          Уже есть аккаунт
+        </button>
       </div>
     </div>
   );
 }
+
