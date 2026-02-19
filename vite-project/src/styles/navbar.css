@@ -1,0 +1,42 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  width: 100%;
+
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.35);
+
+  z-index: 1000;
+}
+
+.navbar-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px 32px;
+}
+
+.logo {
+  font-size: 40px;
+  font-weight: 500;
+}
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+}
+
+.nav-links button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.nav-links button:hover {
+  opacity: 0.6;
+}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { authAPI, tokenManager } from '../utils/api';
 import type { User } from '../utils/api';
-import './LoginPage.css';
+import '../styles/LoginPage.css';
 
 interface Props {
   onSwitchToLogin: () => void;
@@ -25,15 +25,11 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Pro
       return;
     }
 
-    if (password.length < 6) {
-      setError('Пароль должен содержать минимум 6 символов');
+    if (password.length < 3) {
+      setError('Пароль должен содержать минимум 3 символов');
       return;
     }
 
-    if (password.length > 72) {
-      setError('Пароль не должен быть длиннее 72 символов');
-      return;
-    }
 
     setLoading(true);
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { authAPI, tokenManager } from '../utils/api';
 import type { User } from '../utils/api';
-import './LoginPage.css';
+import '../styles/LoginPage.css';
 
 interface Props {
   onSwitchToRegister: () => void;

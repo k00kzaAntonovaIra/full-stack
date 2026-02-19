@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './CreateProfile.css';
+import '../styles/CreateProfile.css';
 
 interface Props {
   onProfileCreated?: () => void;

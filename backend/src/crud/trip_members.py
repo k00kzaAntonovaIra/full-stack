@@ -16,10 +16,6 @@ def get_trip_members(db: Session, trip_id: int, skip: int = 0, limit: int = 100)
     return db.query(TripMember).filter(TripMember.trip_id == trip_id).offset(skip).limit(limit).all()
 
 
-def get_user_trips(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    """Get all trips where user is a member"""
-    return db.query(TripMember).filter(TripMember.user_id == user_id).offset(skip).limit(limit).all()
-
 
 def create_trip_member(db: Session, trip_member: TripMemberCreate):
     """Add user to trip"""

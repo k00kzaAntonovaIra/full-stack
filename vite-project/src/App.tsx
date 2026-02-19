@@ -1,28 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+
+
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CreateProfile from './pages/CreateProfile';
+import HomePage from './pages/HomePage';
+
 import { authAPI, tokenManager } from './utils/api';
 import type { User } from './utils/api';
 
-type Page = 'login' | 'register' | 'createProfile' | 'main';
-
-
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('login');
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Проверка авторизации при старте приложения
+  const navigate = useNavigate();
+
+  const hasProfile = (u: User) =>
+    Boolean(u.name && u.name.trim().length > 0);
+
+  // Проверка авторизации при старте
   useEffect(() => {
     const checkAuth = async () => {
       if (tokenManager.isAuthenticated()) {
         try {
           const userData = await authAPI.getCurrentUser();
           setUser(userData);
+
+          if (hasProfile(userData)) {
+            navigate('/home');
+          } else {
+            navigate('/register');
+          }
         } catch {
           tokenManager.clearTokens();
+          navigate('/login');
         }
+      } else {
+        navigate('/login');
       }
       setLoading(false);
     };
@@ -30,122 +45,90 @@ function App() {
     void checkAuth();
   }, []);
 
-  // Успешный вход
+  // LOGIN
   const handleLoginSuccess = (userData: User) => {
     setUser(userData);
-    // Если нужно, можно сразу показывать CreateProfile
-    setCurrentPage('createProfile');
+
+    if (hasProfile(userData)) {
+      navigate('/home');
+    } else {
+      navigate('/register');
+    }
   };
 
-  // Успешная регистрация
+  // REGISTER
   const handleRegisterSuccess = (userData: User) => {
     setUser(userData);
-    setCurrentPage('createProfile'); // Переход на страницу создания профиля
+    navigate('/create-profile');
   };
 
-  // Выход
+  // PROFILE CREATED
+  const handleProfileCreated = () => {
+    navigate('/home');
+  };
+
+  // LOGOUT
   const handleLogout = () => {
     const refreshToken = tokenManager.getRefreshToken();
     if (refreshToken) {
-      authAPI.logout(refreshToken).catch(() => {
-        // Игнорируем ошибки при выходе
-      });
+      authAPI.logout(refreshToken).catch(() => {});
     }
+
     tokenManager.clearTokens();
     setUser(null);
-    setCurrentPage('login');
+    navigate('/login');
   };
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-        }}
-      >
-        <div>Загрузка...</div>
-      </div>
-    );
-  }
+  if (loading) return <div>Загрузка...</div>;
 
-  // Если пользователь авторизован и создал профиль, показываем главный экран
-  if (user && currentPage !== 'createProfile') {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          padding: '20px',
-        }}
-      >
-        <div
-          style={{
-            background: 'rgba(198, 240, 164, 0.8)',
-            border: '1px solid #5F725A',
-            borderRadius: '20px',
-            padding: '40px',
-            maxWidth: '500px',
-            width: '100%',
-          }}
-        >
-          <h1 style={{ color: '#053B11', marginBottom: '20px' }}>
-            Добро пожаловать, {user.name}!
-          </h1>
-          <p style={{ color: '#053B11', marginBottom: '20px' }}>Email: {user.email}</p>
-          <button
-            onClick={handleLogout}
-            style={{
-              width: '100%',
-              padding: '12px',
-              background: '#053B11',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-            }}
-          >
-            Выйти
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Рендер страниц
   return (
-    <>
-      {currentPage === 'login' && (
-        <LoginPage
-          onSwitchToRegister={() => setCurrentPage('register')}
-          onLoginSuccess={handleLoginSuccess}
-        />
-      )}
+    <Routes>
 
-      {currentPage === 'register' && (
-        <RegisterPage
-          onSwitchToLogin={() => setCurrentPage('login')}
-          onRegisterSuccess={handleRegisterSuccess}
-        />
-      )}
+      {/* ВОТ ЭТО ДОБАВЬ */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
-      {currentPage === 'createProfile' && (
-        <CreateProfile
-          onProfileCreated={() => {
-            // Здесь можно показать главный экран или дашборд после создания профиля
-            setCurrentPage('main'); // Если в будущем будет main-страница
-          }}
-        />
-      )}
-    </>
+      <Route
+        path="/login"
+        element={
+          <LoginPage
+            onSwitchToRegister={() => navigate('/register')}
+            onLoginSuccess={handleLoginSuccess}
+          />
+        }
+      />
+
+      <Route
+        path="/register"
+        element={
+          <RegisterPage
+            onSwitchToLogin={() => navigate('/login')}
+            onRegisterSuccess={handleRegisterSuccess}
+          />
+        }
+      />
+
+      <Route
+        path="/create-profile"
+        element={
+          <CreateProfile
+            onProfileCreated={handleProfileCreated}
+          />
+        }
+      />
+
+      <Route
+        path="/home"
+        element={
+          <HomePage
+            user={user}
+            onLogout={handleLogout}
+          />
+        }
+      />
+
+    </Routes>
   );
+
 }
 
 export default App;

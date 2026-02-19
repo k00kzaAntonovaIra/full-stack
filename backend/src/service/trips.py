@@ -62,7 +62,7 @@ def get_user_trips(
     db: Session, user_id: int, skip: int = 0, limit: int = 100
 ):
     """Get trips where user is a member"""
-    return crud_trip_members.get_user_trips(db, user_id, skip, limit)
+    return crud_trips.get_user_trips(db, user_id, skip, limit)
 
 
 def search_trips(

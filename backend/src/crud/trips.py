@@ -56,6 +56,9 @@ def delete_trip(db: Session, trip_id: int):
         db.commit()
     return db_trip
 
+def get_user_trips(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    """Get all trips where user is a member"""
+    return db.query(Trip).filter(Trip.creator_id == user_id).offset(skip).limit(limit).all()
 
 def search_trips(db: Session, query: str, skip: int = 0, limit: int = 100):
     """Search trips by title or destination"""
