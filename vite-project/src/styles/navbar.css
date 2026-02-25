@@ -1,42 +1,38 @@
+.hero-wrapper {
+  padding: 20px 60px;
+}
+
 .navbar {
-  position: sticky;
-  top: 0;
-  width: 100%;
-
-  backdrop-filter: blur(12px);
-  background: rgba(255,255,255,0.35);
-
-  z-index: 1000;
-}
-
-.navbar-inner {
-  max-width: 1400px;
-  margin: 0 auto;
-
   display: flex;
-  align-items: center;
   justify-content: space-between;
-
-  padding: 18px 32px;
+  align-items: center;
 }
 
-.logo {
-  font-size: 40px;
-  font-weight: 500;
+.logo a {
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: 700;
+  color: black;
 }
 
 .nav-links {
   display: flex;
-  gap: 32px;
+  gap: 25px;
+  align-items: center;
 }
 
-.nav-links button {
+.nav-links a {
+  text-decoration: none;
+  color: black;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.logout-link {
   background: none;
   border: none;
-  font-size: 18px;
+  color: black;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-}
-
-.nav-links button:hover {
-  opacity: 0.6;
 }

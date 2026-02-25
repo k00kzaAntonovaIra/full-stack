@@ -4,14 +4,16 @@ from datetime import datetime
 
 
 class UserBase(BaseModel):
-    name: str
+    name: str | None = None
     email: str
-    bio: Optional[str] = None
-    avatar_url: Optional[str] = None
+    bio: str | None = None
+    avatar_url: str | None = None
 
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
+    email: str
     password: str
+
 
 
 class UserUpdate(BaseModel):
@@ -37,6 +39,11 @@ class UserLogin(BaseModel):
 class UserProfile(UserRead):
     """Extended user profile with additional information"""
     pass
+
+class UserProfileUpdate(BaseModel):
+    name: str
+    bio: str | None = None
+    avatar_url: str | None = None
 
 
 class UserSearch(BaseModel):

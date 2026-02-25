@@ -1,70 +1,66 @@
-.hero {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 0 20px;
+* {
+  box-sizing: border-box;
 }
 
-.hero h1 {
-  font-size: 32px;
-  margin-bottom: 10px;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* HERO */
+.hero {
+  background-image: url('/hero.jpg');
+  background-size: cover;
+  background-position: center;
+  padding: 40px 40px 60px 40px;   /* аккуратный отступ */
+  color: black;
+}
+
+.hero h2 {
+  font-size: 24px;   /* меньше */
+  font-weight: 600;
+  margin-bottom: 15px;
 }
 
 .hero p {
+  max-width: 600px;
   font-size: 18px;
 }
 
-
 /* GRID */
-
 .trips-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
-  padding: 40px;
+  padding: 40px 60px;
 }
 
 /* CARD */
-
-.trip-card {
-  background: rgba(198,240,164,0.8);
-  border-radius: 20px;
+.glass-card {
+  background: white;
+  border-radius: 12px;
   padding: 20px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .trip-img {
-  height: 160px;
-  background: white;
-  border-radius: 4px;
+  height: 150px;
+  background: #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
 }
 
-.trip-content {
-  background: white;
-  padding: 10px;
+.trip-content div {
+  margin-bottom: 6px;
 }
 
 .details-btn {
-  background: #053B11;
-  color: white;
+  margin-top: 10px;
+  padding: 8px 16px;
   border: none;
-  padding: 10px;
   border-radius: 6px;
+  background: #2e7d32;
+  color: white;
   cursor: pointer;
-}
-
-/* ADAPTIVE */
-
-@media (max-width: 1100px) {
-  .trips-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 700px) {
-  .trips-grid {
-    grid-template-columns: 1fr;
-  }
 }

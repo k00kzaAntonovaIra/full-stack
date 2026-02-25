@@ -9,7 +9,8 @@ interface Props {
 }
 
 export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Props) {
-  const [name, setName] = useState('');
+  console.log("REGISTER PAGE RENDER");
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,6 +18,7 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Pro
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+    console.log("HANDLE REGISTER CLICKED");
     e.preventDefault();
     setError('');
 
@@ -35,10 +37,11 @@ export default function RegisterPage({ onSwitchToLogin, onRegisterSuccess }: Pro
 
     try {
       const response = await authAPI.register({
-        name,
         email,
-        password,
+        password
       });
+
+      console.log("REGISTER RESPONSE:", response);
 
       tokenManager.setTokens(response.access_token, response.refresh_token);
 

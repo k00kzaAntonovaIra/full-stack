@@ -23,17 +23,20 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 def create_user(db: Session, user: UserCreate):
     """Create new user"""
     hashed_password = get_password_hash(user.password)
+
     db_user = User(
-        name=user.name,
         email=user.email,
         password_hash=hashed_password,
-        avatar_url=user.avatar_url,
-        bio=user.bio
+        name=None,
+        bio=None,
+        avatar_url=None
     )
+
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
 
 
 def update_user(db: Session, user_id: int, user_update: UserUpdate):

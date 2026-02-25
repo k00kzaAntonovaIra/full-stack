@@ -21,7 +21,8 @@ export interface TokenResponse {
 
 type FetchOptions = RequestInit & { attemptRefresh?: boolean };
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:8000';
+
 
 // Simple token storage helpers
 export const tokenManager = {
@@ -126,17 +127,42 @@ async function refreshAccessToken(): Promise<boolean> {
 
 // Auth API
 export const authAPI = {
-  register: (userData: { name: string; email: string; password: string }) =>
-    withAuthFetch<LoginResponse>('/auth/register', {
+  register: async (userData: { email: string; password: string }) => {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(userData),
-    }),
+    });
 
-  login: (email: string, password: string) =>
-    withAuthFetch<LoginResponse>('/auth/login', {
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.detail || 'Registration failed');
+    }
+
+    return data;
+    },
+
+
+  login: async (email: string, password: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ email, password }),
-    }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data?.detail || 'Login failed');
+    }
+
+    return data;
+  },
 
   refreshToken: (refreshToken: string, allowRetry = true) =>
     withAuthFetch<TokenResponse>(

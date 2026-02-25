@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-
+import Navbar from './components/Navbar';
 
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CreateProfile from './pages/CreateProfile';
 import HomePage from './pages/HomePage';
+import CreateTripPage from './pages/CreateTripPage';
+import MyTripsPage from './pages/MyTripsPage';
+import ProfilePage from './pages/ProfilePage';
+import ArchivePage from './pages/ArchivePage';
 
 import { authAPI, tokenManager } from './utils/api';
 import type { User } from './utils/api';
@@ -22,17 +26,24 @@ function App() {
   // Проверка авторизации при старте
   useEffect(() => {
     const checkAuth = async () => {
+      console.log("CHECK AUTH START");
+
       if (tokenManager.isAuthenticated()) {
         try {
+          console.log("TRY GET CURRENT USER");
+
           const userData = await authAPI.getCurrentUser();
+          console.log("CHECK AUTH USER:", userData);
           setUser(userData);
 
           if (hasProfile(userData)) {
             navigate('/home');
           } else {
-            navigate('/register');
+            navigate('/create-profile');
           }
         } catch {
+          console.log("GET CURRENT USER FAILED");
+
           tokenManager.clearTokens();
           navigate('/login');
         }
@@ -47,14 +58,17 @@ function App() {
 
   // LOGIN
   const handleLoginSuccess = (userData: User) => {
+    console.log("LOGIN USER DATA:", userData);
+
     setUser(userData);
 
     if (hasProfile(userData)) {
       navigate('/home');
     } else {
-      navigate('/register');
+      navigate('/create-profile');
     }
   };
+
 
   // REGISTER
   const handleRegisterSuccess = (userData: User) => {
@@ -79,12 +93,17 @@ function App() {
     navigate('/login');
   };
 
+  console.log("APP RENDER, loading =", loading);
+
   if (loading) return <div>Загрузка...</div>;
 
   return (
+  <>
+    {/* Navbar показываем только если пользователь есть */}
+    {user && <Navbar onLogout={handleLogout} />}
+
     <Routes>
 
-      {/* ВОТ ЭТО ДОБАВЬ */}
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       <Route
@@ -116,18 +135,16 @@ function App() {
         }
       />
 
-      <Route
-        path="/home"
-        element={
-          <HomePage
-            user={user}
-            onLogout={handleLogout}
-          />
-        }
-      />
+      <Route path="/home" element={<HomePage />} />
+
+      <Route path="/create" element={<CreateTripPage />} />
+      <Route path="/my-trips" element={<MyTripsPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/archive" element={<ArchivePage />} />
 
     </Routes>
-  );
+  </>
+);
 
 }
 

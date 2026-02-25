@@ -22,6 +22,7 @@ export default function LoginPage({ onSwitchToRegister, onLoginSuccess }: Props)
     try {
       const response = await authAPI.login(email, password);
 
+
       tokenManager.setTokens(response.access_token, response.refresh_token);
 
       onLoginSuccess?.(response.user);

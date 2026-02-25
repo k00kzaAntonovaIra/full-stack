@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import '../styles/CreateProfile.css';
+import { useNavigate } from 'react-router-dom';
+
 
 interface Props {
   onProfileCreated?: () => void;
 }
 
 export default function CreateProfile({ onProfileCreated }: Props) {
+  const navigate = useNavigate();
   const [photo, setPhoto] = useState<File | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -14,18 +17,41 @@ export default function CreateProfile({ onProfileCreated }: Props) {
   const [about, setAbout] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: any) => {
-    e.preventDefault();
-    setLoading(true);
 
-    // Здесь можно отправить данные на сервер через API
-    console.log({ photo, firstName, lastName, telegram, birthDate, about });
 
-    setTimeout(() => {
-      setLoading(false);
-      onProfileCreated?.();
-    }, 1000);
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  
+  e.preventDefault();
+  setLoading(true);
+
+  const accessToken = localStorage.getItem("access_token");
+
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  const response = await fetch("http://127.0.0.1:8000/auth/profile", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${accessToken}`
+    },
+    body: JSON.stringify({
+      name: fullName,
+      bio: about,
+      avatar_url: null
+    })
+  });
+
+  setLoading(false);
+
+  if (response.ok) {
+    navigate('/home');
+  } else {
+    console.error("Profile update failed");
+  }
+};
+
+
+
 
   const handlePhotoChange = (e: any) => {
     if (e.target.files && e.target.files[0]) {

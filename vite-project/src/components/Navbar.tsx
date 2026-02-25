@@ -1,27 +1,38 @@
-import type { User } from '../utils/api';
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/navbar.css";
 
 interface Props {
-  user: User | null;
   onLogout: () => void;
 }
 
-export default function Navbar({ user, onLogout }: Props) {
+export default function Navbar({ onLogout }: Props) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    onLogout();
+    navigate("/login"); // редирект после выхода
+  };
+
   return (
-    <nav className="navbar">
-      <div className="logo">Plan&Go</div>
+    <div className="hero-wrapper">
+      <nav className="navbar">
 
-      <div className="nav-links">
-        <button>Создать поездку</button>
-        <button>Мои поездки</button>
-        <button>Архив поездок</button>
+        <div className="logo">
+          <Link to="/home">Plan & Go</Link>
+        </div>
 
-        {user && (
-          <>
-            <span>{user.name}</span>
-            <button onClick={onLogout}>Выйти</button>
-          </>
-        )}
-      </div>
-    </nav>
+        <div className="nav-links">
+          <Link to="/create">Создать поездку</Link>
+          <Link to="/my-trips">Мои поездки</Link>
+          <Link to="/profile">Профиль</Link>
+          <Link to="/archive">Архив поездок</Link>
+
+          <button className="logout-link" onClick={handleLogout}>
+            Выход
+          </button>
+        </div>
+
+      </nav>
+    </div>
   );
 }

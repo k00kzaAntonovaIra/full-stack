@@ -6,6 +6,9 @@ from ..schemas.users import UserLogin, UserCreate
 from ..schemas.auth import Token, LoginResponse, RefreshTokenRequest
 from ..service import auth as auth_service
 from ..models.users import User
+from src.schemas.users import UserProfileUpdate
+
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -35,7 +38,7 @@ async def refresh_token(
     token_data: RefreshTokenRequest, 
     db: Session = Depends(get_db)
 ):
-    """🔄 Обновить access токен используя refresh токен"""
+    """ Обновить access токен используя refresh токен"""
     try:
         result = auth_service.refresh_access_token(db, token_data.refresh_token)
         return result
@@ -48,7 +51,7 @@ async def logout(
     token_data: RefreshTokenRequest,
     db: Session = Depends(get_db)
 ):
-    """🚪 Выйти из системы (отозвать refresh токен)"""
+    """ Выйти из системы (отозвать refresh токен)"""
     try:
         result = auth_service.logout_user(db, token_data.refresh_token)
         return result
@@ -61,7 +64,7 @@ async def revoke_all_tokens(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """🔒 Отозвать все refresh токены текущего пользователя"""
+    """ Отозвать все refresh токены текущего пользователя"""
     try:
         result = auth_service.revoke_all_user_tokens(db, current_user.id)
         return result
@@ -73,6 +76,22 @@ async def revoke_all_tokens(
 async def get_current_user_info(
     current_user: User = Depends(get_current_user)
 ):
-    """👤 Получить информацию о текущем пользователе"""
+    """ Получить информацию о текущем пользователе"""
     from ..schemas.users import UserRead
     return UserRead.model_validate(current_user)
+
+
+@router.put("/profile")
+def update_profile(
+    profile_data: UserProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    current_user.name = profile_data.name
+    current_user.bio = profile_data.bio
+    current_user.avatar_url = profile_data.avatar_url
+
+    db.commit()
+    db.refresh(current_user)
+
+    return current_user

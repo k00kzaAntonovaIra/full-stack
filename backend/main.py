@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+
 from src.core.db import engine, Base
 from src.core.settings import settings
 from src.endpoints import users, auth, trips, trip_members, messages, comments
@@ -16,7 +17,7 @@ app = FastAPI(
     swagger_ui_parameters={"persistAuthorization": True},
 )
 
-# Configure CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -25,28 +26,30 @@ app.add_middleware(
     allow_headers=settings.CORS_HEADERS,
 )
 
-# Ensure Bearer auth is visible in Swagger UI
+# Swagger BearerAuth
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
+
     openapi_schema = get_openapi(
         title=app.title,
         version=app.version,
         description=app.description,
         routes=app.routes,
     )
+
     security_schemes = openapi_schema.setdefault("components", {}).setdefault("securitySchemes", {})
     security_schemes.setdefault(
         "BearerAuth",
         {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
     )
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
-
 app.openapi = custom_openapi
 
-# Include routers
+# Routers
 app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(trips.router)
@@ -54,11 +57,9 @@ app.include_router(trip_members.router)
 app.include_router(messages.router)
 app.include_router(comments.router)
 
-
 @app.get("/")
 async def root():
     return {"message": "Travel App API is running"}
-
 
 @app.get("/health")
 async def health_check():
