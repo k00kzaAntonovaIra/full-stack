@@ -25,7 +25,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=LoginResponse)
 async def login(login_data: UserLogin, db: Session = Depends(get_db)):
-    """🔐 Вход в систему (получить токены)"""
+    """ Вход в систему (получить токены)"""
     try:
         result = auth_service.authenticate_user(db, login_data)
         return result

@@ -23,43 +23,35 @@ function App() {
   const hasProfile = (u: User) =>
     Boolean(u.name && u.name.trim().length > 0);
 
-  // Проверка авторизации при старте
   useEffect(() => {
     const checkAuth = async () => {
-      console.log("CHECK AUTH START");
+      if (!tokenManager.isAuthenticated()) {
+        setLoading(false);
+        navigate('/login');
+        return;
+      }
 
-      if (tokenManager.isAuthenticated()) {
-        try {
-          console.log("TRY GET CURRENT USER");
+      try {
+        const userData = await authAPI.getCurrentUser();
+        setUser(userData);
 
-          const userData = await authAPI.getCurrentUser();
-          console.log("CHECK AUTH USER:", userData);
-          setUser(userData);
-
-          if (hasProfile(userData)) {
-            navigate('/home');
-          } else {
-            navigate('/create-profile');
-          }
-        } catch {
-          console.log("GET CURRENT USER FAILED");
-
-          tokenManager.clearTokens();
-          navigate('/login');
+        if (hasProfile(userData)) {
+          navigate('/home');
+        } else {
+          navigate('/create-profile');
         }
-      } else {
+      } catch {
+        tokenManager.clearTokens();
         navigate('/login');
       }
+
       setLoading(false);
     };
 
     void checkAuth();
   }, []);
 
-  // LOGIN
   const handleLoginSuccess = (userData: User) => {
-    console.log("LOGIN USER DATA:", userData);
-
     setUser(userData);
 
     if (hasProfile(userData)) {
@@ -69,19 +61,15 @@ function App() {
     }
   };
 
-
-  // REGISTER
   const handleRegisterSuccess = (userData: User) => {
     setUser(userData);
     navigate('/create-profile');
   };
 
-  // PROFILE CREATED
   const handleProfileCreated = () => {
     navigate('/home');
   };
 
-  // LOGOUT
   const handleLogout = () => {
     const refreshToken = tokenManager.getRefreshToken();
     if (refreshToken) {
@@ -93,59 +81,93 @@ function App() {
     navigate('/login');
   };
 
-  console.log("APP RENDER, loading =", loading);
-
   if (loading) return <div>Загрузка...</div>;
 
   return (
-  <>
-    {/* Navbar показываем только если пользователь есть */}
-    {user && <Navbar onLogout={handleLogout} />}
+    <>
+      {user && <Navbar onLogout={handleLogout} />}
 
-    <Routes>
+      <Routes>
 
-      <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
-      <Route
-        path="/login"
-        element={
-          <LoginPage
-            onSwitchToRegister={() => navigate('/register')}
-            onLoginSuccess={handleLoginSuccess}
-          />
-        }
-      />
+        <Route
+          path="/login"
+          element={
+            <LoginPage
+              onSwitchToRegister={() => navigate('/register')}
+              onLoginSuccess={handleLoginSuccess}
+            />
+          }
+        />
 
-      <Route
-        path="/register"
-        element={
-          <RegisterPage
-            onSwitchToLogin={() => navigate('/login')}
-            onRegisterSuccess={handleRegisterSuccess}
-          />
-        }
-      />
+        <Route
+          path="/register"
+          element={
+            <RegisterPage
+              onSwitchToLogin={() => navigate('/login')}
+              onRegisterSuccess={handleRegisterSuccess}
+            />
+          }
+        />
 
-      <Route
-        path="/create-profile"
-        element={
-          <CreateProfile
-            onProfileCreated={handleProfileCreated}
-          />
-        }
-      />
+        <Route
+          path="/create-profile"
+          element={
+            user
+              ? <CreateProfile onProfileCreated={handleProfileCreated} />
+              : <Navigate to="/login" replace />
+          }
+        />
 
-      <Route path="/home" element={<HomePage />} />
+        <Route
+          path="/home"
+          element={
+            user
+              ? <HomePage currentUser={user} />
+              : <Navigate to="/login" replace />
+          }
+        />
 
-      <Route path="/create" element={<CreateTripPage />} />
-      <Route path="/my-trips" element={<MyTripsPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/archive" element={<ArchivePage />} />
+        <Route
+          path="/create"
+          element={
+            user
+              ? <CreateTripPage />
+              : <Navigate to="/login" replace />
+          }
+        />
 
-    </Routes>
-  </>
-);
+        <Route
+          path="/my-trips"
+          element={
+            user
+              ? <MyTripsPage />
+              : <Navigate to="/login" replace />
+          }
+        />
 
+        <Route
+          path="/profile"
+          element={
+            user
+              ? <ProfilePage />
+              : <Navigate to="/login" replace />
+          }
+        />
+
+        <Route
+          path="/archive"
+          element={
+            user
+              ? <ArchivePage />
+              : <Navigate to="/login" replace />
+          }
+        />
+
+      </Routes>
+    </>
+  );
 }
 
 export default App;

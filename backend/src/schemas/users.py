@@ -26,6 +26,7 @@ class UserUpdate(BaseModel):
 class UserRead(UserBase):
     id: int
     created_at: datetime
+    role: str
 
     class Config:
         from_attributes = True

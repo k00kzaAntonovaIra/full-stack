@@ -13,7 +13,11 @@ class TripMember(Base):
     
     # Foreign keys
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    trip_id = Column(Integer, ForeignKey("trips.id"), nullable=False)
+    trip_id = Column(
+        Integer,
+        ForeignKey("trips.id", ondelete="CASCADE"),
+        nullable=False
+    )
     
     # Relationships
     user = relationship("User", back_populates="trip_memberships")

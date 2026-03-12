@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from ..crud import trips as crud_trips, trip_members as crud_trip_members
 from ..schemas.trips import TripCreate, TripUpdate
 from ..schemas.trip_members import TripMemberCreate
+from src.models.trips import Trip
 
 
 def create_trip(db: Session, trip_data: TripCreate, creator_id: int):
@@ -44,18 +45,25 @@ def update_trip(db: Session, trip_id: int, trip_data: TripUpdate, user_id: int):
     return crud_trips.update_trip(db, trip_id, trip_data)
 
 
-def delete_trip(db: Session, trip_id: int, user_id: int):
-    """Delete trip with permission check"""
-    trip = crud_trips.get_trip(db, trip_id)
+def delete_trip(db, trip_id: int, current_user):
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+
     if not trip:
         raise ValueError("Trip not found")
 
-    # Only organizer can delete the trip
-    trip_member = crud_trip_members.get_trip_member(db, trip_id, user_id)
-    if not trip_member or trip_member.role != "organizer":
-        raise ValueError("Only trip organizer can delete the trip")
+    # ADMIN может удалить любую
+    if current_user.role == "admin":
+        db.delete(trip)
+        db.commit()
+        return
 
-    return crud_trips.delete_trip(db, trip_id)
+    # USER может удалить только свою
+    if current_user.role == "user" and trip.creator_id == current_user.id:
+        db.delete(trip)
+        db.commit()
+        return
+
+    raise PermissionError("Not enough permissions to delete this trip")
 
 
 def get_user_trips(
@@ -99,3 +107,6 @@ def get_trip_statistics(db: Session, trip_id: int, user_id: int):
         "trip": trip,
         "member_count": member_count,
     }
+
+def get_all_trips(db: Session, skip: int = 0, limit: int = 100):
+    return crud_trips.get_all_trips(db, skip, limit)

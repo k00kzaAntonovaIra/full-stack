@@ -14,6 +14,7 @@ class User(Base):
     avatar_url = Column(String, nullable=True)
     bio = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    role = Column(String, default="user")
     
     # Relationships
     trips_created = relationship("Trip", back_populates="creator")

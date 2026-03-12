@@ -3,8 +3,34 @@ from sqlalchemy.orm import Session
 from ..core.db import get_db
 from ..schemas.users import UserCreate, UserRead, UserUpdate
 from ..service import users as user_service
+from src.core.rbac import require_role
+from src.models.users import User
+from src.core.security import get_current_user
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+@router.get("/me", response_model=UserRead)
+def read_current_user(
+    current_user: User = Depends(get_current_user),
+):
+    return current_user
+
+@router.patch("/{user_id}/role")
+def change_user_role(
+    user_id: int,
+    new_role: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.role = new_role
+    db.commit()
+
+    return {"message": f"Role updated to {new_role}"}
 
 
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)

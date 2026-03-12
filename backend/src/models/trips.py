@@ -21,6 +21,20 @@ class Trip(Base):
     
     # Relationships
     creator = relationship("User", back_populates="trips_created")
-    members = relationship("TripMember", back_populates="trip")
-    messages = relationship("Message", back_populates="trip")
-    comments = relationship("Comment", back_populates="trip")
+    members = relationship(
+        "TripMember",
+        back_populates="trip",
+        cascade="all, delete-orphan"
+    )
+
+    messages = relationship(
+        "Message",
+        back_populates="trip",
+        cascade="all, delete-orphan"
+    )
+
+    comments = relationship(
+        "Comment",
+        back_populates="trip",
+        cascade="all, delete-orphan"
+    )
