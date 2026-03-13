@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+
 from ..core.db import get_db
-from ..schemas.trips import TripCreate, TripRead, TripUpdate
-from ..service import trips as trip_service
-from fastapi import Depends
 from ..core.security import get_current_user
 from ..models.users import User
+
+from ..schemas.trips import TripCreate, TripRead, TripUpdate
+from ..service import trips as trip_service
+
 
 router = APIRouter(prefix="/trips", tags=["trips"])
 
@@ -13,8 +15,8 @@ router = APIRouter(prefix="/trips", tags=["trips"])
 @router.post("/", response_model=TripRead)
 async def create_trip(
     trip_data: TripCreate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     trip = trip_service.create_trip(db, trip_data, current_user.id)
     return trip
@@ -29,15 +31,16 @@ async def get_all_trips(
     trips = trip_service.get_all_trips(db, skip, limit)
     return trips
 
+
 @router.get("/{trip_id}", response_model=TripRead)
 async def get_trip_details(
-    trip_id: int, 
-    user_id: int,  # В реальном приложении получать из токена
-    db: Session = Depends(get_db)
+    trip_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """ Получить детали поездки"""
+    """Получить детали поездки"""
     try:
-        trip = trip_service.get_trip_details(db, trip_id, user_id)
+        trip = trip_service.get_trip_details(db, trip_id, current_user.id)
         return trip
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -45,14 +48,14 @@ async def get_trip_details(
 
 @router.put("/{trip_id}", response_model=TripRead)
 async def update_trip(
-    trip_id: int, 
-    trip_data: TripUpdate, 
-    user_id: int,  # В реальном приложении получать из токена
-    db: Session = Depends(get_db)
+    trip_id: int,
+    trip_data: TripUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """ Обновить поездку"""
+    """Обновить поездку"""
     try:
-        trip = trip_service.update_trip(db, trip_id, trip_data, user_id)
+        trip = trip_service.update_trip(db, trip_id, trip_data, current_user.id)
         return trip
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

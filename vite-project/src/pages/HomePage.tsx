@@ -1,61 +1,59 @@
 import { useEffect, useState } from "react";
 import "../styles/home.css";
-import type { User } from "../utils/api";
+import type { User, Trip } from "../utils/api";
+import { tripsAPI, tokenManager } from "../utils/api";
 
 interface HomePageProps {
   currentUser: User | null;
 }
 
-interface Trip {
-  id: number;
-  title: string;
-  description: string;
-  destination: string;
-  start_date: string;
-  end_date: string;
-  budget_total: number;
-  creator_id: number;
-}
-
 export default function HomePage({ currentUser }: HomePageProps) {
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Загружаем поездки
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/trips/")
-      .then(res => res.json())
-      .then(data => {
-        console.log("Trips from backend:", data);
+    async function loadTrips() {
+      try {
+        // Получаем старый токен один раз
+        const oldToken = tokenManager.getAccessToken();
+        console.log("OLD ACCESS TOKEN:", oldToken);
+
+        const data = await tripsAPI.list() as Trip[];
         setTrips(data);
-      })
-      .catch(err => console.error(err));
-  }, []);
+
+        // Новый токен после запроса
+        const newToken = tokenManager.getAccessToken();
+        if (oldToken !== newToken) {
+          console.log("NEW ACCESS TOKEN:", newToken);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadTrips();
+  }, []); // пустой массив — useEffect сработает один раз
 
   const deleteTrip = async (id: number) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    await fetch(`http://127.0.0.1:8000/trips/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    setTrips(prev => prev.filter(trip => trip.id !== id));
+    try {
+      await tripsAPI.delete(id);
+      setTrips(prev => prev.filter(trip => trip.id !== id));
+    } catch (err) {
+      console.error("Ошибка при удалении:", err);
+      alert("Не удалось удалить поездку");
+    }
   };
 
-  console.log("CURRENT USER:", currentUser);
+  if (loading) return <div>Загрузка поездок...</div>;
 
   return (
     <section className="trips-grid">
       {trips.map(trip => {
         const canDelete =
           currentUser &&
-          (
-            Number(trip.creator_id) === Number(currentUser.id) ||
-            currentUser.role?.toLowerCase() === "admin"
-          );
+          (trip.creator_id === currentUser.id || currentUser.role?.toLowerCase() === "admin");
 
         return (
           <div className="glass-card" key={trip.id}>
@@ -70,15 +68,10 @@ export default function HomePage({ currentUser }: HomePageProps) {
               <div>Организатор ID: {trip.creator_id}</div>
             </div>
 
-            <button className="green-btn">
-              Подробнее
-            </button>
+            <button className="green-btn">Подробнее</button>
 
             {canDelete && (
-              <button
-                className="red-btn"
-                onClick={() => deleteTrip(trip.id)}
-              >
+              <button className="red-btn" onClick={() => deleteTrip(trip.id)}>
                 Удалить
               </button>
             )}

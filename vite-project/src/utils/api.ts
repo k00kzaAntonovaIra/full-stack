@@ -1,3 +1,8 @@
+import axios, { AxiosError } from 'axios';
+import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+
+const API_BASE_URL = 'http://localhost:8000';
+
 export interface User {
   id: number;
   name: string;
@@ -5,33 +10,24 @@ export interface User {
   avatar_url?: string | null;
   bio?: string | null;
   role: string;
+  created_at?: string;
 }
 
-export interface LoginResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  user: User;
+export interface Trip {
+  id: number;
+  title: string;
+  description: string;
+  destination: string;
+  start_date: string;
+  end_date: string;
+  budget_total: number;
+  creator_id: number;
 }
 
-export interface TokenResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-}
-
-type FetchOptions = RequestInit & { attemptRefresh?: boolean };
-
-const API_BASE_URL = 'http://localhost:8000';
-
-
-// Simple token storage helpers
 export const tokenManager = {
-  setTokens: (accessToken: string, refreshToken?: string | null) => {
+  setTokens: (accessToken: string, refreshToken?: string) => {
     localStorage.setItem('access_token', accessToken);
-    if (refreshToken) {
-      localStorage.setItem('refresh_token', refreshToken);
-    }
+    if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
   },
   getAccessToken: () => localStorage.getItem('access_token'),
   getRefreshToken: () => localStorage.getItem('refresh_token'),
@@ -39,233 +35,108 @@ export const tokenManager = {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
   },
-  isAuthenticated: () => !!localStorage.getItem('access_token'),
 };
 
-async function withAuthFetch<T = unknown>(
-  endpoint: string,
-  options: FetchOptions = {},
-  attemptRefresh = true,
-): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const accessToken = tokenManager.getAccessToken();
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+});
 
-  const { attemptRefresh: _, ...restOptions } = options;
-  const headers = new Headers({
-    'Content-Type': 'application/json',
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = tokenManager.getAccessToken();
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error);
+    else prom.resolve(token);
   });
+  failedQueue = [];
+};
 
-  // Merge provided headers
-  if (options.headers) {
-    const provided = new Headers(options.headers);
-    provided.forEach((value, key) => headers.set(key, value));
-  }
+api.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-  if (accessToken) {
-    headers.set('Authorization', `Bearer ${accessToken}`);
-  }
-
-  const response = await fetch(url, {
-    ...restOptions,
-    headers,
-  });
-
-  // If unauthorized and we have refresh token, try to refresh once
-  if (response.status === 401 && attemptRefresh) {
-    const refreshed = await refreshAccessToken();
-    if (refreshed) {
-      return withAuthFetch<T>(endpoint, options, false);
-    }
-  }
-
-  const data = await safeParseJson(response);
-  if (!response.ok) {
-    throw new Error(buildErrorMessage(data));
-  }
-  return data as T;
-}
-
-async function safeParseJson(response: Response): Promise<unknown | null> {
-  try {
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-function buildErrorMessage(data: unknown): string {
-  // FastAPI detail string
-  if (data && typeof data === 'object' && 'detail' in data) {
-    const detail = (data as { detail: unknown }).detail;
-    if (typeof detail === 'string') return detail;
-    // detail can be list of errors
-    if (Array.isArray(detail)) {
-      const first = detail[0];
-      if (first && typeof first === 'object' && 'msg' in first) {
-        return String((first as { msg: unknown }).msg);
+    // Если 401 и это НЕ запрос на логин или рефреш
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh')) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
       }
-      return detail.map(String).join(', ');
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = tokenManager.getRefreshToken();
+      if (!refreshToken) {
+        return Promise.reject(error);
+      }
+
+      try {
+        const refreshToken = tokenManager.getRefreshToken();
+        //console.log("DEBUG: Отправляем рефреш-токен:", refreshToken);
+
+        // Попробуем явно указать заголовки и формат
+        const res = await axios({
+          method: 'post',
+          url: `${API_BASE_URL}/auth/refresh`,
+          data: { refresh_token: refreshToken },
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        //console.log("DEBUG: Ответ сервера на рефреш:", res.data);
+
+        const { access_token, refresh_token } = res.data;
+        tokenManager.setTokens(access_token, refresh_token);
+        
+        processQueue(null, access_token);
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        }
+        return api(originalRequest);
+      } catch (refreshError: any) {
+        //console.error("DEBUG: Детали ошибки рефреша:", refreshError.response?.data); // ВОТ ЭТО ОЧЕНЬ ВАЖНО
+        processQueue(refreshError, null);
+        tokenManager.clearTokens();
+        return Promise.reject(refreshError);
+      } 
+      // catch (refreshError) {
+      //   console.error(" Рефреш упал:", refreshError);
+      //   processQueue(refreshError, null);
+      //   tokenManager.clearTokens();
+      //   return Promise.reject(refreshError);
+      // } finally {
+      //   isRefreshing = false;
+      // }
     }
-    return String(detail);
+    return Promise.reject(error);
   }
+);
 
-  if (typeof data === 'string') return data;
-  return 'Произошла ошибка';
-}
-
-async function refreshAccessToken(): Promise<boolean> {
-  const refreshToken = tokenManager.getRefreshToken();
-  if (!refreshToken) return false;
-  try {
-    const data = await authAPI.refreshToken(refreshToken, false);
-    tokenManager.setTokens(data.access_token, data.refresh_token);
-    return true;
-  } catch {
-    tokenManager.clearTokens();
-    return false;
-  }
-}
-
-// Auth API
 export const authAPI = {
-  register: async (userData: { email: string; password: string }) => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data?.detail || 'Registration failed');
-    }
-
-    return data;
-    },
-
-
-  login: async (email: string, password: string) => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data?.detail || 'Login failed');
-    }
-
-    return data;
-  },
-
-  refreshToken: (refreshToken: string, allowRetry = true) =>
-    withAuthFetch<TokenResponse>(
-      '/auth/refresh',
-      {
-        method: 'POST',
-        body: JSON.stringify({ refresh_token: refreshToken }),
-      },
-      allowRetry,
-    ),
-
-  logout: (refreshToken: string) =>
-    withAuthFetch<{ message: string }>('/auth/logout', {
-      method: 'POST',
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    }),
-
-  getCurrentUser: () => withAuthFetch<User>('/auth/me'),
+  register: (userData: any) => api.post('/auth/register', userData).then(r => r.data),
+  login: (email: string, password: string) => api.post('/auth/login', { email, password }).then(r => r.data),
+  logout: (refreshToken: string) => api.post('/auth/logout', { refresh_token: refreshToken }).then(r => r.data),
+  getCurrentUser: () => api.get<User>('/auth/me').then(r => r.data),
+  refreshToken: (token: string) => api.post('/auth/refresh', { refresh_token: token }).then(r => r.data),
 };
 
-// Users API
-export const usersAPI = {
-  me: () => withAuthFetch<User>('/users/me'),
-  updateMe: (userData: Partial<Omit<User, 'id' | 'email'>>) =>
-    withAuthFetch<User>('/users/me', {
-      method: 'PUT',
-      body: JSON.stringify(userData),
-    }),
-  deleteMe: () =>
-    withAuthFetch<null>('/users/me', {
-      method: 'DELETE',
-    }),
-};
-
-// Trips API
 export const tripsAPI = {
-  list: (params: Record<string, string | number> = {}) => {
-    const search = new URLSearchParams(params as Record<string, string>).toString();
-    return withAuthFetch<unknown[]>(`/trips${search ? `?${search}` : ''}`);
-  },
-  create: (tripData: Record<string, unknown>) =>
-    withAuthFetch<unknown>('/trips', {
-      method: 'POST',
-      body: JSON.stringify(tripData),
-    }),
-  get: (tripId: number | string) => withAuthFetch<unknown>(`/trips/${tripId}`),
-  update: (tripId: number | string, tripData: Record<string, unknown>) =>
-    withAuthFetch<unknown>(`/trips/${tripId}`, {
-      method: 'PUT',
-      body: JSON.stringify(tripData),
-    }),
-  remove: (tripId: number | string) =>
-    withAuthFetch<null>(`/trips/${tripId}`, {
-      method: 'DELETE',
-    }),
-};
-
-// Trip members API
-export const tripMembersAPI = {
-  join: (tripId: number | string, joinData: Record<string, unknown>) =>
-    withAuthFetch<unknown>(`/trips/${tripId}/join`, {
-      method: 'POST',
-      body: JSON.stringify(joinData),
-    }),
-  members: (tripId: number | string) => withAuthFetch<unknown[]>(`/trips/${tripId}/members`),
-  updateRole: (tripId: number | string, memberId: number | string, newRole: string) =>
-    withAuthFetch<unknown>(`/trips/${tripId}/members/${memberId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ newRole }),
-    }),
-  remove: (tripId: number | string, memberId: number | string) =>
-    withAuthFetch<null>(`/trips/${tripId}/members/${memberId}`, {
-      method: 'DELETE',
-    }),
-};
-
-// Messages API
-export const messagesAPI = {
-  list: (tripId: number | string, { skip = 0, limit = 100 } = {}) => {
-    const search = new URLSearchParams({ skip: String(skip), limit: String(limit) }).toString();
-    return withAuthFetch<unknown[]>(`/trips/${tripId}/messages?${search}`);
-  },
-  send: (tripId: number | string, messageData: Record<string, unknown>) =>
-    withAuthFetch<unknown>(`/trips/${tripId}/messages`, {
-      method: 'POST',
-      body: JSON.stringify(messageData),
-    }),
-};
-
-// Comments API
-export const commentsAPI = {
-  list: (tripId: number | string, { skip = 0, limit = 100 } = {}) => {
-    const search = new URLSearchParams({ skip: String(skip), limit: String(limit) }).toString();
-    return withAuthFetch<unknown[]>(`/trips/${tripId}/comments?${search}`);
-  },
-  add: (tripId: number | string, commentData: Record<string, unknown>) =>
-    withAuthFetch<unknown>(`/trips/${tripId}/comments`, {
-      method: 'POST',
-      body: JSON.stringify(commentData),
-    }),
-  remove: (commentId: number | string) =>
-    withAuthFetch<null>(`/trips/comments/${commentId}`, {
-      method: 'DELETE',
-    }),
+  list: () => api.get<Trip[]>('/trips/').then(r => r.data),
+  create: (data: Partial<Trip>) => api.post<Trip>('/trips/', data).then(r => r.data),
+  delete: (id: number) => api.delete(`/trips/${id}`).then(r => r.data),
 };

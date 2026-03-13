@@ -15,7 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    """📝 Регистрация нового пользователя"""
+    """ Регистрация нового пользователя"""
     try:
         result = auth_service.register_user(db, user_data)
         return result
@@ -34,14 +34,11 @@ async def login(login_data: UserLogin, db: Session = Depends(get_db)):
 
 
 @router.post("/refresh", response_model=Token)
-async def refresh_token(
-    token_data: RefreshTokenRequest, 
-    db: Session = Depends(get_db)
-):
-    """ Обновить access токен используя refresh токен"""
+async def refresh_token(token_data: RefreshTokenRequest, db: Session = Depends(get_db)):
+    """Обновить access токен используя refresh токен"""
     try:
-        result = auth_service.refresh_access_token(db, token_data.refresh_token)
-        return result
+        token_data_obj = auth_service.refresh_access_token(db, token_data.refresh_token)
+        return token_data_obj
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
 

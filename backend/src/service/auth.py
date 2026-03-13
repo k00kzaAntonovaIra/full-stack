@@ -89,43 +89,54 @@ def authenticate_user(db: Session, login_data: UserLogin) -> LoginResponse:
         user=UserRead.model_validate(user)
     )
 
-
-
-
 def refresh_access_token(db: Session, refresh_token: str) -> Token:
-    """Refresh access token using refresh token"""
+    """Refresh access token using refresh token with rotation"""
     try:
         payload = decode_token(refresh_token, expected_type="refresh")
     except ValueError:
         raise ValueError("Invalid or expired refresh token")
 
-    # Get token from database
+    # Получаем токен из базы
     db_token = crud_refresh_tokens.get_refresh_token(db, refresh_token)
+
     if not db_token or db_token.is_revoked:
         raise ValueError("Invalid or expired refresh token")
-    if db_token.expires_at < datetime.now(timezone.utc):
+
+    if db_token.expires_at < datetime.utcnow():
         crud_refresh_tokens.revoke_refresh_token(db, refresh_token)
         raise ValueError("Invalid or expired refresh token")
 
-    # Get user
-    user_id_from_token = int(payload.get("sub"))
-    if db_token.user_id != user_id_from_token:
-        raise ValueError("Invalid refresh token")
+    user_id = int(payload.get("sub"))
 
-    user = crud_users.get_user(db, user_id_from_token)
+    user = crud_users.get_user(db, user_id)
     if not user:
         raise ValueError("User not found")
 
-    # Generate new access token
+    # Отзываем старый refresh
+    crud_refresh_tokens.revoke_refresh_token(db, refresh_token)
+
+    # Создаём новый refresh
+    new_refresh_token, refresh_expires = generate_refresh_token(user.id)
+
+    crud_refresh_tokens.create_refresh_token(
+        db=db,
+        token=new_refresh_token,
+        user_id=user.id,
+        expires_at=refresh_expires
+    )
+
+    # Создаём новый access
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        user.id, 
+
+    new_access_token = create_access_token(
+        user.id,
         expires_delta=access_token_expires
     )
 
+    # Возвращаем новые токены
     return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,  # Return same refresh token
+        access_token=new_access_token,
+        refresh_token=new_refresh_token,
         token_type="bearer"
     )
 
