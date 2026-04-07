@@ -6,6 +6,17 @@ from src.core.db import engine, Base
 from src.core.settings import settings
 from src.endpoints import users, auth, trips, trip_members, messages, comments
 from src.models import User, Trip, TripMember, Message, Comment, RefreshToken
+from fastapi import APIRouter
+from fastapi.responses import PlainTextResponse, Response
+
+from fastapi.staticfiles import StaticFiles
+import os
+import shutil
+from fastapi import UploadFile, File, HTTPException
+
+# Создаем папку, если её нет
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -16,6 +27,8 @@ app = FastAPI(
     version="1.0.0",
     swagger_ui_parameters={"persistAuthorization": True},
 )
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # CORS
 app.add_middleware(
@@ -48,6 +61,38 @@ def custom_openapi():
     return app.openapi_schema
 
 app.openapi = custom_openapi
+
+# --- SEO Endpoints ---
+
+@app.get("/robots.txt", response_class=PlainTextResponse, tags=["SEO"])
+def get_robots_txt():
+    """Файл для управления индексацией поисковыми роботами"""
+    data = """User-agent: *
+Disallow: /auth/
+Disallow: /settings/
+Allow: /
+Sitemap: http://localhost:8000/sitemap.xml
+"""
+    return data
+
+@app.get("/sitemap.xml", tags=["SEO"])
+def get_sitemap():
+    """Карта сайта для поисковиков"""
+    content = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>http://localhost:3000/</loc>
+        <lastmod>2026-04-05</lastmod>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>http://localhost:3000/trips</loc>
+        <lastmod>2026-04-05</lastmod>
+        <priority>0.8</priority>
+    </url>
+</urlset>
+"""
+    return Response(content=content, media_type="application/xml")
 
 # Routers
 app.include_router(users.router)

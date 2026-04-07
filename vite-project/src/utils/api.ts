@@ -13,6 +13,12 @@ export interface User {
   created_at?: string;
 }
 
+export interface WeatherInfo {
+  temp: number;
+  description: string;
+  icon: string;
+}
+
 export interface Trip {
   id: number;
   title: string;
@@ -22,6 +28,8 @@ export interface Trip {
   end_date: string;
   budget_total: number;
   creator_id: number;
+  image_url?: string;
+  weather?: WeatherInfo;
 }
 
 export const tokenManager = {
@@ -136,7 +144,18 @@ export const authAPI = {
 };
 
 export const tripsAPI = {
-  list: () => api.get<Trip[]>('/trips/').then(r => r.data),
+  list: (params?: { 
+    search?: string; 
+    min_budget?: number; 
+    max_budget?: number; 
+    start_date?: string; 
+    end_date?: string; 
+    creator_id?: number;
+    skip?: number; 
+    limit?: number;
+    sort_by?: string;
+    sort_order?: string;
+  }) => api.get<Trip[]>('/trips/', { params }).then(res => res.data),
   create: (data: Partial<Trip>) => api.post<Trip>('/trips/', data).then(r => r.data),
   delete: (id: number) => api.delete(`/trips/${id}`).then(r => r.data),
 };

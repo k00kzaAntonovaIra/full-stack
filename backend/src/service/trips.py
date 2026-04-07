@@ -108,5 +108,16 @@ def get_trip_statistics(db: Session, trip_id: int, user_id: int):
         "member_count": member_count,
     }
 
-def get_all_trips(db: Session, skip: int = 0, limit: int = 100):
-    return crud_trips.get_all_trips(db, skip, limit)
+def get_all_trips(db, skip, limit, search, min_budget, max_budget, start_date, end_date, sort_by, sort_order):
+    return crud_trips.get_all_trips(
+        db, 
+        skip=skip, 
+        limit=limit, 
+        search=search, 
+        min_budget=min_budget, 
+        max_budget=max_budget,
+        start_date=start_date,
+        end_date=end_date,
+        sort_by=sort_by,
+        sort_order=sort_order
+    )

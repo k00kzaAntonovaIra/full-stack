@@ -28,6 +28,82 @@ body {
   font-size: 18px;
 }
 
+
+/* FILTERS PANEL */
+.filters-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 15px 30px;
+  margin: 0 60px 20px 60px; /* Отступы как у сетки */
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Общие стили для полей */
+.filter-input, .filter-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  background: white;
+}
+
+/* Группы инпутов (бюджет и даты) */
+.filter-group {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+/* Специфические размеры для полей */
+.search-input {
+  flex: 2; /* Поиск самый широкий */
+  min-width: 180px;
+}
+
+.input-small {
+  width: 80px; /* Для мин/макс бюджета */
+}
+
+.input-date {
+  width: 130px; /* Для дат */
+  color: #666;
+}
+
+.filter-select {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Кнопки в карточках (дополнение к твоим стилям) */
+.green-btn {
+  background: #2e7d32;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.red-btn {
+  background: #d32f2f;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.red-btn:hover {
+  background: #b71c1c;
+}
+
 /* GRID */
 .trips-grid {
   display: grid;

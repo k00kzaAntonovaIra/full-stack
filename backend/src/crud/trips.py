@@ -4,10 +4,61 @@ from ..models.trips import Trip
 from ..schemas.trips import TripCreate, TripUpdate
 from sqlalchemy.orm import Session
 from ..models.trips import Trip
+from datetime import date
+from sqlalchemy import or_, func, and_
 
+def get_all_trips(
+    db: Session, 
+    skip: int = 0, 
+    limit: int = 100, 
+    search: str = None, 
+    min_budget: float = None, 
+    max_budget: float = None,
+    start_date: date = None, 
+    end_date: date = None, 
+    sort_by: str = "created_at",
+    sort_order: str = "desc"
+):
+    query = db.query(Trip)
 
-def get_all_trips(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Trip).offset(skip).limit(limit).all()
+    # 1. Поиск по названию или локации
+    if search:
+        # Делаем два варианта: один с маленькой, другой с Большой буквы
+        s_low = f"%{search.lower().strip()}%"
+        s_cap = f"%{search.capitalize().strip()}%"
+        
+        query = query.filter(
+            or_(
+                Trip.title.like(s_low),
+                Trip.title.like(s_cap),
+                Trip.destination.like(s_low),
+                Trip.destination.like(s_cap)
+            )
+        )
+        
+        # И ЕЩЕ ОДНУ ДЛЯ ПРОВЕРКИ
+    print(f"DEBUG: SQL запрос готов: {query}")
+
+    # 2. Фильтрация по бюджету
+    if min_budget is not None:
+        query = query.filter(Trip.budget_total >= min_budget)
+    if max_budget is not None:
+        query = query.filter(Trip.budget_total <= max_budget)
+
+    # 3. ДОБАВЛЯЕМ: Фильтрация по датам (теперь она заработает!)
+    if start_date:
+        query = query.filter(Trip.start_date >= start_date)
+    if end_date:
+        query = query.filter(Trip.end_date <= end_date)
+
+    # 4. Сортировка
+    column = getattr(Trip, sort_by, Trip.created_at)
+    if sort_order == "asc":
+        query = query.order_by(column.asc())
+    else:
+        query = query.order_by(column.desc())
+
+    return query.offset(skip).limit(limit).all()
 
 def get_trip(db: Session, trip_id: int):
     """Get trip by ID"""

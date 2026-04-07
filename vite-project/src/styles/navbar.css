@@ -1,38 +1,75 @@
+/* Обертка для всего навбара (прозрачная) */
 .hero-wrapper {
-  padding: 20px 60px;
+  padding: 30px 60px; /* Отступы от краев экрана */
+  background: transparent; /* Оставляем фон с горами */
 }
 
+/* Контейнер навбара (тоже прозрачный) */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
 }
 
+/* Стили для Логотипа (как отдельная карточка) */
 .logo a {
   text-decoration: none;
-  font-size: 24px;
-  font-weight: 700;
-  color: black;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a1a1a;
+  background: white; /* Белый фон */
+  padding: 12px 25px;
+  border-radius: 10px; /* Скругление */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Легкая тень */
+  transition: transform 0.2s;
 }
 
+.logo a:hover {
+  transform: translateY(-2px); /* Эффект при наведении */
+}
+
+/* Контейнер для ссылок (прозрачный) */
 .nav-links {
   display: flex;
-  gap: 25px;
+  gap: 15px; /* Расстояние между карточками-ссылками */
   align-items: center;
 }
 
+/* Каждая ссылка меню как отдельная белая карточка */
 .nav-links a {
   text-decoration: none;
-  color: black;
+  color: #333;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
+  background: white; /* Белый фон */
+  padding: 10px 20px;
+  border-radius: 8px; /* Скругление */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* Тень */
+  transition: all 0.2s ease;
 }
 
+.nav-links a:hover {
+  color: #2e7d32; /* Твой зеленый */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Кнопка Выход (тоже как карточка, но с красным акцентом) */
 .logout-link {
-  background: none;
-  border: none;
-  color: black;
+  background: white;
+  border: 1px solid #eee; /* Легкая граница */
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: #d32f2f; /* Красный текст */
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.logout-link:hover {
+  background: #feebee; /* Светло-красный фон */
+  border-color: #d32f2f;
 }

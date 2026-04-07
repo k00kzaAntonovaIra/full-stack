@@ -11,6 +11,7 @@ class TripBase(BaseModel):
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     budget_total: Optional[Decimal] = None
+    image_url: Optional[str] = None
 
 
 class TripCreate(TripBase):
@@ -45,3 +46,13 @@ class TripSearch(BaseModel):
     query: str
     skip: int = 0
     limit: int = 100
+
+# Новая схема для данных из Weather API
+class WeatherInfo(BaseModel):
+    temp: int
+    description: str
+    icon: str
+
+# Расширяем TripRead для детального просмотра с погодой
+class TripReadWithWeather(TripRead):
+    weather: Optional[WeatherInfo] = None

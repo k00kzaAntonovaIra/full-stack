@@ -6,10 +6,12 @@ class Settings:
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./travel_app.db")
     
+    WEATHER_API_KEY: str = os.getenv("WEATHER_API_KEY", "c466af0f9030c5296428f96e789689f7")
+
     # JWT
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1"))
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "600"))
     REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
     
     # CORS
