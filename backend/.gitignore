@@ -156,3 +156,20 @@ logs/
 # Temporary files
 tmp/
 temp/
+
+# Node.js (Frontend)
+node_modules/
+dist/
+.eslintcache
+*.local
+
+# Docker
+.docker
+data/
+minio_data/
+
+# Данные, которые могут создаваться локально
+*.jpg
+*.png
+*.jpeg
+!backend/src/static/placeholder.png

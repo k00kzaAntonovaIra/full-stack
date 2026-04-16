@@ -71,6 +71,7 @@ async def upload_trip_image(
 
     except Exception as e:
         # Если что-то пошло не так с Docker или MinIO
+        print(f"DEBUG ERROR: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка при загрузке в облако: {str(e)}")
 
 @router.post("/", response_model=TripRead)
