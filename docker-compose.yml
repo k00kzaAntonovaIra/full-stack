@@ -18,7 +18,9 @@ services:
   backend:
     build: ./backend
     container_name: travel_api
-    env_file: .env
+    env_file:
+      - .env.example
+      - .env
     depends_on:
       storage:
         condition: service_healthy
